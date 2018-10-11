@@ -102,13 +102,19 @@ def alphabeta_min_node(board, color, alpha, beta):
     else:
         opp_color = 3 - color
         moves = []
+        h_mvs = dict()
         moves = get_possible_moves(board, opp_color)
         if moves == []:
             v = compute_utility(board, color)
         else:
             for move in moves:
                 suc_board = play_move(board, opp_color, move[0], move[1])
-                v = min(v, alphabeta_max_node(suc_board, color, alpha, beta))
+                utility = compute_utility(suc_board, color)
+                h_mvs[move] = utility
+            heuristic = sorted(h_mvs.items(), key=lambda kv: kv[1])
+            for i in range(0, len(heuristic)):
+                new_suc_board = play_move(board, opp_color, heuristic[i][0][0], heuristic[i][0][1])
+                v = min(v, alphabeta_max_node(new_suc_board, color, alpha, beta))
                 if v <= alpha:
                     return v
                 beta = min(beta, v)
@@ -124,18 +130,23 @@ def alphabeta_max_node(board, color, alpha, beta):
         v = state_value_dict[board]
     else:
         moves = []
+        h_mvs = dict()
         moves = get_possible_moves(board, color)
         if moves == []:
             v = compute_utility(board, color)
         else:
             for move in moves:
                 suc_board = play_move(board, color, move[0], move[1])
-                v = max(v, alphabeta_min_node(suc_board, color, alpha, beta))
+                utility = compute_utility(suc_board, color)
+                h_mvs[move] = utility
+            heuristic = sorted(h_mvs.items(), key=lambda kv: kv[1], reverse=True)
+            for i in range(0, len(heuristic)):
+                new_suc_board = play_move(board, color, heuristic[i][0][0], heuristic[i][0][1])
+                v = max(v, alphabeta_min_node(new_suc_board, color, alpha, beta))
                 if v >= beta:
                     return v
                 alpha = max(alpha, v)
-    state_value_dict[board] = v
-
+        state_value_dict[board] = v
     return v
 
 
@@ -197,24 +208,17 @@ def run_ai():
 
 if __name__ == "__main__":
     run_ai()
-    """ 
-    board = tuple()
-    board = ((0, 1, 1, 0),
-             (0, 2, 1, 1),
-             (1, 1, 2, 1),
-             (1, 0, 0, 0))
-    l = []
-    dic = dict()
-    dic['i'] = 2
-    dic['j'] = 3
-    dic['value'] = 100
-    l.append(dic)
-    dic1 = dict()
-    dic1['i'] = 1
-    dic1['j'] = 5
-    dic1['value'] = 300
-    l.append(dic1)
-    di = dict()
-    di = [d for d in l if d['value'] == 300]
-    print(di)
-    """
+
+    """  board = tuple()
+    board = ((0, 2, 0, 0),
+            (0, 2, 1, 1),
+            (0, 2, 1, 0),
+            (0, 0, 0, 0))
+    alphabeta_max_node(board, 1, float("-inf"), float("inf"))"""
+"""x = {(1,2): 2, (3,4): 4, (4,5): 3, (2,8): 1, (0,6): 0}
+    sorted_by_value = sorted(x.items(), key=lambda kv: kv[1])
+    print (sorted_by_value)
+    print (sorted_by_value[0][0][0])"""
+
+
+
