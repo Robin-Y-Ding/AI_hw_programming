@@ -94,7 +94,33 @@ def select_move_minimax(board, color):
 
 ############ ALPHA-BETA PRUNING #####################
 
-#alphabeta_min_node(board, color, alpha, beta, level, limit)
+def alphabeta_min_node(board, color, alpha, beta, level, limit):
+    v = float("inf")
+    level += 1
+    if board in state_value_dict.keys():
+        v = state_value_dict[board]
+    else:
+        opp_color = 3 - color
+        moves = []
+        h_mvs = dict()
+        moves = get_possible_moves(board, opp_color)
+        if moves == [] or level == limit:
+            v = compute_utility(board, color)
+        else:
+            for move in moves:
+                suc_board = play_move(board, opp_color, move[0], move[1])
+                utility = compute_utility(suc_board, color)
+                h_mvs[move] = utility
+            heuristic = sorted(h_mvs.items(), key=lambda kv: kv[1])
+            for i in range(0, len(heuristic)):
+                new_suc_board = play_move(board, opp_color, heuristic[i][0][0], heuristic[i][0][1])
+                v = min(v, alphabeta_max_node(new_suc_board, color, alpha, beta, level, limit))
+                if v <= alpha:
+                    return v
+                beta = min(beta, v)
+        state_value_dict[board] = v
+    return v
+"""
 def alphabeta_min_node(board, color, alpha, beta):
     v = float("inf")
     if board in state_value_dict.keys():
@@ -120,10 +146,35 @@ def alphabeta_min_node(board, color, alpha, beta):
                 beta = min(beta, v)
         state_value_dict[board] = v
     return v
+"""
 
 
-
-#alphabeta_max_node(board, color, alpha, beta, level, limit)
+def alphabeta_max_node(board, color, alpha, beta, level, limit):
+    v = float("-inf")
+    level += 1
+    if board in state_value_dict.keys():
+        v = state_value_dict[board]
+    else:
+        moves = []
+        h_mvs = dict()
+        moves = get_possible_moves(board, color)
+        if moves == [] or level == limit:
+            v = compute_utility(board, color)
+        else:
+            for move in moves:
+                suc_board = play_move(board, color, move[0], move[1])
+                utility = compute_utility(suc_board, color)
+                h_mvs[move] = utility
+            heuristic = sorted(h_mvs.items(), key=lambda kv: kv[1], reverse=True)
+            for i in range(0, len(heuristic)):
+                new_suc_board = play_move(board, color, heuristic[i][0][0], heuristic[i][0][1])
+                v = max(v, alphabeta_min_node(new_suc_board, color, alpha, beta, level, limit))
+                if v >= beta:
+                    return v
+                alpha = max(alpha, v)
+        state_value_dict[board] = v
+    return v
+"""
 def alphabeta_max_node(board, color, alpha, beta):
     v = float("-inf")
     if board in state_value_dict.keys():
@@ -148,7 +199,7 @@ def alphabeta_max_node(board, color, alpha, beta):
                 alpha = max(alpha, v)
         state_value_dict[board] = v
     return v
-
+"""
 
 def select_move_alphabeta(board, color):
     next_move_i = 0
@@ -157,9 +208,11 @@ def select_move_alphabeta(board, color):
     mvs = get_possible_moves(board, color)
     alpha = float("-inf")
     beta = float("inf")
+    level = 0
+    limit = 6
     for mv in mvs:
         suc_board = play_move(board, color, mv[0], mv[1])
-        value = alphabeta_min_node(suc_board, color, alpha, beta)
+        value = alphabeta_min_node(suc_board, color, alpha, beta, level, limit)
         if max_value < value:
             next_move_i = mv[0]
             next_move_j = mv[1]
